@@ -188,8 +188,12 @@ func getInfoProto(info *MessageInfo) *proto.WebMessageInfo {
 func getContextInfoProto(info *MessageInfo) *proto.ContextInfo {
 	if len(info.QuotedMessageID) > 0 {
 		contextInfo := &proto.ContextInfo{
-			StanzaId:      &info.QuotedMessageID,
-			QuotedMessage: []*proto.Message{&info.QuotedMessage},
+			StanzaId: &info.QuotedMessageID,
+		}
+
+		quotedMessage := &info.QuotedMessage
+		if quotedMessage != nil {
+			contextInfo.QuotedMessage = []*proto.Message{quotedMessage}
 		}
 
 		return contextInfo
