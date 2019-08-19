@@ -191,9 +191,8 @@ func getContextInfoProto(info *MessageInfo) *proto.ContextInfo {
 			StanzaId: &info.QuotedMessageID,
 		}
 
-		quotedMessage := &info.QuotedMessage
-		if quotedMessage != nil {
-			contextInfo.QuotedMessage = []*proto.Message{quotedMessage}
+		if &info.QuotedMessage != nil {
+			contextInfo.QuotedMessage = []*proto.Message{&info.QuotedMessage}
 		}
 
 		return contextInfo
@@ -225,11 +224,17 @@ func getTextProto(msg TextMessage) *proto.WebMessageInfo {
 	p := getInfoProto(&msg.Info)
 	contextInfo := getContextInfoProto(&msg.Info)
 
-	p.Message = &proto.Message{
-		ExtendedTextMessage: &proto.ExtendedTextMessage{
-			Text:        &msg.Text,
-			ContextInfo: contextInfo,
-		},
+	if contextInfo == nil {
+		p.Message = &proto.Message{
+			Conversation: &msg.Text,
+		}
+	} else {
+		p.Message = &proto.Message{
+			ExtendedTextMessage: &proto.ExtendedTextMessage{
+				Text:        &msg.Text,
+				ContextInfo: contextInfo,
+			},
+		}
 	}
 
 	return p
