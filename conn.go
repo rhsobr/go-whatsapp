@@ -121,6 +121,14 @@ func NewConn(timeout time.Duration) (*Conn, error) {
 	return wac, wac.connect()
 }
 
+func (wac *Conn) IsConnected() bool {
+	return wac.connected
+}
+
+func (wac *Conn) IsLoggedIn() bool {
+	return wac.loggedIn
+}
+
 // connect should be guarded with wsWriteMutex
 func (wac *Conn) connect() (err error) {
 	if wac.connected {
@@ -168,7 +176,7 @@ func (wac *Conn) connect() (err error) {
 	wac.wg = &sync.WaitGroup{}
 	wac.wg.Add(2)
 	go wac.readPump()
-	go wac.keepAlive(20000, 60000)
+	go wac.keepAlive(20000, 55000)
 
 	wac.loggedIn = false
 	return nil
@@ -191,6 +199,10 @@ func (wac *Conn) Disconnect() (Session, error) {
 		return Session{}, err
 	}
 	return *wac.session, err
+}
+
+func (wac *Conn) IsLoginInProgress() bool {
+	return wac.sessionLock == 1
 }
 
 func (wac *Conn) AdminTest() (bool, error) {

@@ -12,13 +12,14 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/rhsobr/go-whatsapp/crypto/cbc"
 	"github.com/rhsobr/go-whatsapp/crypto/curve25519"
 	"github.com/rhsobr/go-whatsapp/crypto/hkdf"
 )
 
 //represents the WhatsAppWeb client version
-var waVersion = []int{0, 3, 3324}
+var waVersion = []int{0, 3, 4479}
 
 /*
 Session contains session individual information. To be able to resume the connection without scanning the qr code
@@ -151,7 +152,7 @@ func (wac *Conn) SetClientName(long, short string) error {
 
 /*
 SetClientVersion sets WhatsApp client version
-Default value is 0.3.3324
+Default value is 0.3.4479
 */
 func (wac *Conn) SetClientVersion(major int, minor int, patch int) {
 	waVersion = []int{major, minor, patch}
@@ -160,6 +161,29 @@ func (wac *Conn) SetClientVersion(major int, minor int, patch int) {
 // GetClientVersion returns WhatsApp client version
 func (wac *Conn) GetClientVersion() []int {
 	return waVersion
+}
+
+func (wac *Conn) adminInitRequest(clientId string) (string, time.Duration, error) {
+	login := []interface{}{"admin", "init", waVersion, []string{wac.longClientName, wac.shortClientName}, clientId, true}
+	loginChan, err := wac.writeJson(login)
+	if err != nil {
+		return "", 0, fmt.Errorf("error writing login: %v\n", err)
+	}
+
+	var r string
+	select {
+	case r = <-loginChan:
+	case <-time.After(wac.msgTimeout):
+		return "", 0, fmt.Errorf("login connection timed out")
+	}
+
+	var resp map[string]interface{}
+	fmt.Println(r)
+	if err = json.Unmarshal([]byte(r), &resp); err != nil {
+		return "", 0, fmt.Errorf("error decoding login resp: %v\n", err)
+	}
+
+	return resp["ref"].(string), time.Duration(resp["ttl"].(float64)) * time.Millisecond, nil
 }
 
 /*
@@ -186,6 +210,10 @@ github.com/Baozisoftware/qrcode-terminal-go Example login procedure:
 	fmt.Printf("login successful, session: %v\n", session)
 */
 func (wac *Conn) Login(qrChan chan<- string) (Session, error) {
+	return wac.LoginWithRetry(qrChan, 0)
+}
+
+func (wac *Conn) LoginWithRetry(qrChan chan<- string, maxRetries int) (Session, error) {
 	session := Session{}
 	//Makes sure that only a single Login or Restore can happen at the same time
 	if !atomic.CompareAndSwapUint32(&wac.sessionLock, 0, 1) {
@@ -213,25 +241,6 @@ func (wac *Conn) Login(qrChan chan<- string) (Session, error) {
 	}
 
 	session.ClientId = base64.StdEncoding.EncodeToString(clientId)
-	login := []interface{}{"admin", "init", waVersion, []string{wac.longClientName, wac.shortClientName}, session.ClientId, true}
-	loginChan, err := wac.writeJson(login)
-	if err != nil {
-		return session, fmt.Errorf("error writing login: %v\n", err)
-	}
-
-	var r string
-	select {
-	case r = <-loginChan:
-	case <-time.After(wac.msgTimeout):
-		return session, fmt.Errorf("login connection timed out")
-	}
-
-	var resp map[string]interface{}
-	if err = json.Unmarshal([]byte(r), &resp); err != nil {
-		return session, fmt.Errorf("error decoding login resp: %v\n", err)
-	}
-
-	ref := resp["ref"].(string)
 
 	priv, pub, err := curve25519.GenerateKey()
 	if err != nil {
@@ -244,18 +253,35 @@ func (wac *Conn) Login(qrChan chan<- string) (Session, error) {
 	wac.listener.m["s1"] = s1
 	wac.listener.Unlock()
 
+	ref, ttl, err := wac.adminInitRequest(session.ClientId)
+	if err != nil {
+		return session, err
+	}
 	qrChan <- fmt.Sprintf("%v,%v,%v", ref, base64.StdEncoding.EncodeToString(pub[:]), session.ClientId)
 
+	wac.loginSessionLock.Lock()
+	defer wac.loginSessionLock.Unlock()
 	var resp2 []interface{}
-	select {
-	case r1 := <-s1:
-		wac.loginSessionLock.Lock()
-		defer wac.loginSessionLock.Unlock()
-		if err := json.Unmarshal([]byte(r1), &resp2); err != nil {
-			return session, fmt.Errorf("error decoding qr code resp: %v", err)
+For:
+	for {
+		select {
+		case r1 := <-s1:
+			if err := json.Unmarshal([]byte(r1), &resp2); err != nil {
+				return session, fmt.Errorf("error decoding qr code resp: %v", err)
+			}
+			break For
+		case <-time.After(ttl):
+			maxRetries--
+			if maxRetries < 0 {
+				_, _ = wac.Disconnect()
+				return session, ErrLoginTimedOut
+			}
+			ref, ttl, err = wac.adminInitRequest(session.ClientId)
+			if err != nil {
+				return session, err
+			}
+			qrChan <- fmt.Sprintf("%v,%v,%v", ref, base64.StdEncoding.EncodeToString(pub[:]), session.ClientId)
 		}
-	case <-time.After(time.Duration(resp["ttl"].(float64)) * time.Millisecond):
-		return session, fmt.Errorf("qr code scan timed out")
 	}
 
 	info := resp2[1].(map[string]interface{})
@@ -389,8 +415,8 @@ func (wac *Conn) Restore() error {
 			return fmt.Errorf("error decoding login connResp: %v\n", err)
 		}
 
-		if int(resp["status"].(float64)) != 200 {
-			return fmt.Errorf("init responded with %d", resp["status"])
+		if stat := int(resp["status"].(float64)); stat != 200 {
+			return fmt.Errorf("init responded with %d", stat)
 		}
 	case <-time.After(wac.msgTimeout):
 		return fmt.Errorf("restore session init timed out")
@@ -413,7 +439,7 @@ func (wac *Conn) Restore() error {
 				return fmt.Errorf("error decoding login connResp: %v\n", err)
 			}
 			if int(resp["status"].(float64)) != 200 {
-				return fmt.Errorf("admin login responded with %d", int(resp["status"].(float64)))
+				return errors.Wrap(wac.getAdminLoginResponseError(resp), "admin login errored")
 			}
 		default:
 			// not even an error message – assume timeout
@@ -451,7 +477,7 @@ func (wac *Conn) Restore() error {
 		}
 
 		if int(resp["status"].(float64)) != 200 {
-			return fmt.Errorf("admin login responded with %d", resp["status"])
+			return errors.Wrap(wac.getAdminLoginResponseError(resp), "admin login errored")
 		}
 	case <-time.After(wac.msgTimeout):
 		return fmt.Errorf("restore session login timed out")
@@ -468,6 +494,28 @@ func (wac *Conn) Restore() error {
 	wac.loggedIn = true
 
 	return nil
+}
+
+func (wac *Conn) getAdminLoginResponseError(resp map[string]interface{}) error {
+	statusFloat, ok := resp["status"].(float64)
+	if !ok {
+		return fmt.Errorf("%v (unknown error, no status)", resp)
+	}
+	status := int(statusFloat)
+	switch status {
+	case 400:
+		return ErrBadRequest
+	case 401:
+		return ErrUnpaired
+	case 403:
+		tos := int(resp["tos"].(float64))
+		return errors.WithMessagef(ErrAccessDenied, "tos: %d", tos)
+	case 405:
+		return ErrLoggedIn
+	case 409:
+		return ErrReplaced
+	}
+	return fmt.Errorf("%d (unknown error)", status)
 }
 
 func (wac *Conn) resolveChallenge(challenge string) error {
@@ -491,8 +539,8 @@ func (wac *Conn) resolveChallenge(challenge string) error {
 		if err := json.Unmarshal([]byte(r), &resp); err != nil {
 			return fmt.Errorf("error decoding login resp: %v\n", err)
 		}
-		if int(resp["status"].(float64)) != 200 {
-			return fmt.Errorf("challenge responded with %d\n", resp["status"])
+		if stat := int(resp["status"].(float64)); stat != 200 {
+			return fmt.Errorf("challenge responded with %d\n", stat)
 		}
 	case <-time.After(wac.msgTimeout):
 		return fmt.Errorf("connection timed out")
