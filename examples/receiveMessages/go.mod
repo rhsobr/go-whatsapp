@@ -1,4 +1,4 @@
-module github.com/rhsobr/go-whatsapp/examples/chatHistory
+module github.com/rhsobr/go-whatsapp/examples/receiveMessages
 
 go 1.13
 
