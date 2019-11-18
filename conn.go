@@ -139,7 +139,7 @@ func NewConnWithProxy(timeout time.Duration, proxy func(*http.Request) (*url.URL
 		msgTimeout: timeout,
 		Store:      newStore(),
 
-		longClientName:  "github.com/rhymen/go-whatsapp",
+		longClientName:  "github.com/rhsobr/go-whatsapp",
 		shortClientName: "go-whatsapp",
 		Proxy:           proxy,
 	}
