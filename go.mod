@@ -8,3 +8,5 @@ require (
 	github.com/pkg/errors v0.8.1
 	golang.org/x/crypto v0.0.0-20191117063200-497ca9f6d64f
 )
+
+go 1.13

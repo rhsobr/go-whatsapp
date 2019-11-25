@@ -10,3 +10,5 @@ require (
 )
 
 replace github.com/rhsobr/go-whatsapp => ../../
+
+go 1.13
