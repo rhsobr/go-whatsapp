@@ -104,7 +104,7 @@ func (wac *Conn) sendAdminTest() (bool, error) {
 	select {
 	case resp := <-r:
 		if err := json.Unmarshal([]byte(resp), &response); err != nil {
-			return false, fmt.Errorf("error decoding response message: %v\n", err)
+			return false, fmt.Errorf("error decoding response message: %v: %s", err, resp)
 		}
 	case <-time.After(wac.msgTimeout):
 		return false, ErrConnectionTimeout
@@ -112,9 +112,9 @@ func (wac *Conn) sendAdminTest() (bool, error) {
 
 	if len(response) == 2 && response[0].(string) == "Pong" && response[1].(bool) == true {
 		return true, nil
-	} else {
-		return false, nil
 	}
+
+	return false, nil
 }
 
 func (wac *Conn) write(messageType int, answerMessageTag string, data []byte) (<-chan string, error) {
