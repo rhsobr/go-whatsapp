@@ -23,11 +23,12 @@ var (
 	ErrMediaDownloadFailedWith410 = errors.New("download failed with status code 410")
 	ErrLoginTimedOut              = errors.New("login timed out")
 
-	ErrBadRequest   = errors.New("400 (bad request)")
-	ErrUnpaired     = errors.New("401 (unpaired from phone)")
-	ErrAccessDenied = errors.New("403 (access denied)")
-	ErrLoggedIn     = errors.New("405 (already logged in)")
-	ErrReplaced     = errors.New("409 (logged in from another location)")
+	ErrNetworkConnectTimeout = errors.New("599 (network timeout)")
+	ErrBadRequest            = errors.New("400 (bad request)")
+	ErrUnpaired              = errors.New("401 (unpaired from phone)")
+	ErrAccessDenied          = errors.New("403 (access denied)")
+	ErrLoggedIn              = errors.New("405 (already logged in)")
+	ErrReplaced              = errors.New("409 (logged in from another location)")
 )
 
 type ErrConnectionFailed struct {

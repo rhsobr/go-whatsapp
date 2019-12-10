@@ -104,7 +104,18 @@ func (wac *Conn) sendAdminTest() (bool, error) {
 	select {
 	case resp := <-r:
 		if err := json.Unmarshal([]byte(resp), &response); err != nil {
-			return false, fmt.Errorf("error decoding response message: %v: %s", err, resp)
+			var statusResponse struct {
+				Status int `json:"status"`
+			}
+			err := json.Unmarshal(resp, &statusResponse)
+			if err == nil {
+				if statusResponse.Status == 599 {
+					return false, ErrNetworkConnectTimeout
+				}
+				return false, errors.New(fmt.Sprintf("server responded with %d", statusResponse.Status))
+			}
+
+			return false, errors.New(fmt.Sprintf("%s: %s", ErrInvalidServerResponse, resp))
 		}
 	case <-time.After(wac.msgTimeout):
 		return false, ErrConnectionTimeout
