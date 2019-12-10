@@ -107,7 +107,7 @@ func (wac *Conn) sendAdminTest() (bool, error) {
 			var statusResponse struct {
 				Status int `json:"status"`
 			}
-			err := json.Unmarshal(resp, &statusResponse)
+			err := json.Unmarshal([]byte(resp), &statusResponse)
 			if err == nil {
 				if statusResponse.Status == 599 {
 					return false, ErrNetworkConnectTimeout
