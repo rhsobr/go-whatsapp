@@ -86,7 +86,6 @@ func (wac *Conn) Send(msg interface{}) (string, error) {
 		if int(resp["status"].(float64)) == 200 {
 			return getMessageInfo(msgProto).Id, nil
 		}
-		return msgInfo.Id, nil
 	case <-time.After(wac.msgTimeout):
 		return "ERROR", fmt.Errorf("sending message timed out")
 	}
