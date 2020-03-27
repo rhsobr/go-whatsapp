@@ -5,9 +5,8 @@ package proto
 
 import (
 	fmt "fmt"
-	math "math"
-
 	proto "github.com/golang/protobuf/proto"
+	math "math"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -6095,7 +6094,9 @@ func init() {
 	proto.RegisterType((*WebMessageInfo)(nil), "proto.WebMessageInfo")
 }
 
-func init() { proto.RegisterFile("def.proto", fileDescriptor_76fb0470a3b910d8) }
+func init() {
+	proto.RegisterFile("def.proto", fileDescriptor_76fb0470a3b910d8)
+}
 
 var fileDescriptor_76fb0470a3b910d8 = []byte{
 	// 6873 bytes of a gzipped FileDescriptorProto
