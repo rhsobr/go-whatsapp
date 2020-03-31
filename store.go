@@ -1,7 +1,7 @@
 package whatsapp
 
 import (
-	"github.com/rhsobr/go-whatsapp/binary"
+	"github.com/Octadesk-Tech/go-whatsapp/binary"
 	"strings"
 )
 

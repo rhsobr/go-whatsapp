@@ -10,8 +10,8 @@ github.com/mattn/go-isatty v0.0.8 h1:HLtExJ+uU2HOZ+wI0Tt5DtUDrx8yhUqDcp7fYERX4CE
 github.com/mattn/go-isatty v0.0.8/go.mod h1:Iq45c/XA43vh69/j3iqttzPXn0bhXyGjM0Hdxcsrc5s=
 github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
-github.com/rhsobr/go-whatsapp v0.0.3 h1:vpJgq+ociUCMhbaBvbZx5RZwdAkxWETb5FAZJz0ZqT8=
-github.com/rhsobr/go-whatsapp v0.0.3/go.mod h1:sf/z/7Etb5h9xggQs9Ja/mxmq+Q4/4004dtL2cZWmzg=
+github.com/Octadesk-Tech/go-whatsapp v0.0.3 h1:vpJgq+ociUCMhbaBvbZx5RZwdAkxWETb5FAZJz0ZqT8=
+github.com/Octadesk-Tech/go-whatsapp v0.0.3/go.mod h1:sf/z/7Etb5h9xggQs9Ja/mxmq+Q4/4004dtL2cZWmzg=
 github.com/skip2/go-qrcode v0.0.0-20191027152451-9434209cb086 h1:RYiqpb2ii2Z6J4x0wxK46kvPBbFuZcdhS+CIztmYgZs=
 github.com/skip2/go-qrcode v0.0.0-20191027152451-9434209cb086/go.mod h1:PLPIyL7ikehBD1OAjmKKiOEhbvWyHGaNDjquXMcYABo=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=

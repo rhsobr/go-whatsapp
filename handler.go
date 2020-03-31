@@ -5,9 +5,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/Octadesk-Tech/go-whatsapp/binary"
+	"github.com/Octadesk-Tech/go-whatsapp/binary/proto"
 	"github.com/pkg/errors"
-	"github.com/rhsobr/go-whatsapp/binary"
-	"github.com/rhsobr/go-whatsapp/binary/proto"
 )
 
 /*

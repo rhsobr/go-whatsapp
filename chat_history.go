@@ -1,8 +1,8 @@
 package whatsapp
 
 import (
-	"github.com/rhsobr/go-whatsapp/binary"
-	"github.com/rhsobr/go-whatsapp/binary/proto"
+	"github.com/Octadesk-Tech/go-whatsapp/binary"
+	"github.com/Octadesk-Tech/go-whatsapp/binary/proto"
 	"log"
 	"strconv"
 	"time"

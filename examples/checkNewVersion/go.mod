@@ -1,7 +1,7 @@
-module github.com/rhsobr/go-whatsapp/examples/checkNewVersion
+module github.com/Octadesk-Tech/go-whatsapp/examples/checkNewVersion
 
 go 1.13
 
-require github.com/rhsobr/go-whatsapp v0.0.3
+require github.com/Octadesk-Tech/go-whatsapp v0.0.3
 
-replace github.com/rhsobr/go-whatsapp => ../../
+replace github.com/Octadesk-Tech/go-whatsapp => ../../

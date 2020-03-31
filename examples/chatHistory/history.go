@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/rhsobr/go-whatsapp"
+	"github.com/Octadesk-Tech/go-whatsapp"
 	"log"
 	"time"
 )
