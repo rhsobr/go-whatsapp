@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Rhymen/go-whatsapp/binary"
+	"github.com/Octadesk-Tech/go-whatsapp/binary"
 )
 
 func (wac *Conn) GetGroupMetaData(jid string) (<-chan string, error) {
